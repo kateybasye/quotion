@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Chat Geasy Peasy",
+  "version": "1.0",
+  "description": "Adds keyboard shortcuts for easier, faster Chat GPT use.",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "48": "icon.png"
+  }
+}

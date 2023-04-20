@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat Geasy Peasy Extension</title>
+  <script src="popup.js"></script>
+  <style>
+    body {
+      width: 300px;
+      margin: 0;
+      padding: 1rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #DBDB27;
+      color: #1f1f1f;
+    }
+
+    h1 {
+      font-size: 32px;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #1f1f1f;
+      font-weight: 300;
+      margin-top: 0.25rem;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 0.5rem;
+    }
+
+    .p-bold {
+        font-weight: 900;
+    }
+
+    img {
+        width: 50%;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 2rem;
+    }
+
+    .summary {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 0.25rem 1.25rem 0.5rem 1.25rem;
+      box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1rem;
+    }
+
+    ol {
+        font-size: 14px;
+    }
+    button {
+      background-color: #2E9945;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
+      margin: 0 auto;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+    <img src="Icon-large.png">
+  <h1>Welcome to Chat Geasy Peasy!</h1>
+  <div class="summary">
+    <p class="p-large">Chat Geasy Peasy is a fun and useful browser extension that adds custom keyboard shortcuts for quick navigation on the OpenAI Chat website.</p>
+    <p class="p-bold">Feature List:</p>
+    <ol>
+        <li><span class="p-bold">Navigate your conversations quickly.</span> Use Ctrl + [1-9] (on Mac) or Alt + [1-9] (on Windows).</li>
+    </ol>
+  </div>
+  <button id="closeButton">Close</button>
+</body>
+</html>
