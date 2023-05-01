@@ -51,7 +51,7 @@ async function createInput(document) {
         },
         properties: newInput,
       });
-      console.log(`Created new input page: ${document.title}`);
+      console.log(`Created new input page: ` + document.title);
       return createdPage.id;
     } catch (error) {
       console.error("Error creating input page:", error.message);
@@ -87,13 +87,82 @@ async function createQuote(highlight, inputID) {
       },
       properties: newQuote,
     });
-    // console.log(`Created new quote page: ${highlight.text}`);
-    console.log(`Created new quote page `+ inputID);
+    console.log(`Created new quote page with tags:` + JSON.stringify(highlight.tags));
     return createdPage;
   } catch (error) {
     console.error("Error creating quote page:", error.message);
   }
 }
+
+async function processTags(highlightTags, quoteID) {
+    try {
+      const databaseId = process.env.TOPICS_DATABASE_ID;
+      for (const tag of highlightTags) {
+        // Check if the topic already exists in the Topics database
+        const existingTopics = await notion.databases.query({
+          database_id: databaseId,
+          filter: {
+            property: 'Name',
+            title: {
+              equals: tag.name,
+            },
+          },
+        });
+  
+        let topic;
+        
+        if (existingTopics.results.length === 0) {
+          // If the topic doesn't exist, create a new page in the Topics database
+          topic = await notion.pages.create({
+            parent: {
+              database_id: databaseId,
+            },
+            properties: {
+              Name: {
+                title: [
+                  {
+                    text: {
+                      content: tag.name,
+                    },
+                  },
+                ],
+              },
+            },
+          });
+        } else {
+          // If the topic exists, use the first result
+          topic = existingTopics.results[0];
+        }
+        // Add the topic as a relation to the quote
+        const page = await notion.pages.update({
+          page_id: quoteID,
+          properties: {
+            Topics: {
+              relation: [
+                {
+                  id: topic.id,
+                },
+              ],
+            },
+          },
+          // Append the topic to the existing relation instead of replacing it
+          // This is useful if there are multiple tags for the same quote
+          // and we want to preserve the previous relations
+          // If there are no previous relations, Notion will ignore this parameter
+          // and simply create a new relation
+         // Append the topic to the existing relation instead of replacing it
+            relations: {
+                Topics: {
+                append: true,
+            },
+  },
+        });
+      }
+    } catch (error) {
+      console.error('Error processing tags:', error.message);
+    }
+  }
+  
 
 axios
   .get(apiUrl, {
@@ -103,13 +172,16 @@ axios
   })
   .then(async (response) => {
     const results = response.data.results;
-    console.log(results.length)
-    for (const result of results) {
-      const inputID = await createInput(result);
-      const highlights = result.highlights;
-      for (const highlight of highlights) {
-       await createQuote(highlight, inputID);
-      }
+    for (const result of results) {  
+        if(result.category !== "tweets") {
+            const inputID = await createInput(result);
+            const highlights = result.highlights;
+            for (const highlight of highlights) {
+              const quote = await createQuote(highlight, inputID);
+              const highlightTags = highlight.tags;
+              await processTags(highlightTags, quote.id);        
+            }
+        }
     }
   })
   .catch((error) => {
