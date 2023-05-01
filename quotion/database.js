@@ -19,6 +19,17 @@ db.run(`
     console.error(err.message);
   }
   console.log('Updates table created or already exists.');
+
+  // Insert a new row with the current date and time
+  const now = new Date().toISOString();
+  db.run(`INSERT INTO Updates (date) VALUES (?)`, [now], (err) => {
+    if (err) {
+      console.error(err.message);
+    } else {
+      console.log(`Inserted a new row with date: ${now}`);
+    }
+  });
+  
 });
 
 module.exports = db;
