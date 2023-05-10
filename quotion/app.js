@@ -1,16 +1,15 @@
+// Import necessary libraries
 require('dotenv').config();
-
 const axios = require('axios');
 const db = require('./database');
-
-console.log(db.createInput)
+const { insertUpdate } = require('./database');
 
 const apiKey = process.env.RWAPI_KEY;
 const apiUrl = 'https://readwise.io/api/v2/export/'; 
-
 const dallEapiKEY = process.env.dallEapiKEY;
 const dallEUrl = 'https://api.openai.com/v1/images/generations';
 
+// Initialize Notion client
 const { Client } = require("@notionhq/client");
 const { OpenAIApi } = require('openai');
 
@@ -18,6 +17,8 @@ const { OpenAIApi } = require('openai');
 const notion = new Client({
   auth: process.env.NOTION_API_KEY,
 });
+
+// Define functions
 async function getLastUpdate() {
     return new Promise((resolve, reject) => {
       db.get(`SELECT * FROM Updates ORDER BY date DESC LIMIT 1`, (err, row) => {
@@ -30,7 +31,6 @@ async function getLastUpdate() {
       });
     });
   }
-  
 async function createInput(document, coverImageUrl) {
     try {
       const newInput = {
@@ -75,7 +75,6 @@ async function createInput(document, coverImageUrl) {
       console.error("Error creating input page:", error.message);
     }
   }
-
 async function createQuote(highlight, inputID, coverImageUrl) {
   try {
     const newQuote = {
@@ -125,7 +124,6 @@ async function createQuote(highlight, inputID, coverImageUrl) {
     console.error("Error creating quote page:", error.message);
   }
 }
-
 async function processTags(highlightTags, quoteID) {
     try {
       const databaseId = process.env.TOPICS_DATABASE_ID;
@@ -187,7 +185,6 @@ async function processTags(highlightTags, quoteID) {
       console.error('Error processing tags:', error.message);
     }
   }
-  
 async function addConnection(inputID, author) {
 try {
     const databaseId = process.env.CONNECTIONS_DATABASE_ID;
@@ -275,7 +272,7 @@ async function generateImage(prompt, size = "1024x1024", n = 1, responseFormat =
     }
   }  
 
-
+// Fetch data from Readwise API
 axios
   .get(apiUrl, {
     headers: {
@@ -287,7 +284,8 @@ axios
   })
   .then(async (response) => {
     // const lastUpdate = await getLastUpdate();
-    lastUpdate = new Date('5/8/2023 10:30 PM');
+    lastUpdate = new Date('5/9/2023 9:30 PM');
+
     const results = response.data.results;
     for (const result of results) { 
         let shouldCreateInput = false;
