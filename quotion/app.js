@@ -3,6 +3,8 @@ require('dotenv').config();
 const axios = require('axios');
 const db = require('./database');
 
+console.log(db.createInput)
+
 const apiKey = process.env.RWAPI_KEY;
 const apiUrl = 'https://readwise.io/api/v2/export/'; 
 
@@ -22,7 +24,7 @@ async function getLastUpdate() {
         if (err) {
           reject(err);
         } else {
-            const timestamp = new Date(row.date).getTime();
+            const timestamp = new Date(row.date).toISOString();
             resolve(timestamp);
         }
       });
@@ -44,6 +46,9 @@ async function createInput(document, coverImageUrl) {
           },
           URL: {
             url: document.source_url,
+          },
+          "Cover URL": {
+            url: coverImageUrl,
           },
           Type: {
             select: {
@@ -83,6 +88,14 @@ async function createQuote(highlight, inputID, coverImageUrl) {
                 },
               },
             ],
+          },
+          "Cover URL": {
+            url: coverImageUrl,
+          },
+          "Created Readwise": {
+            date: {
+              start: highlight.highlighted_at,
+            }
           },
           Source: {
             relation: [
@@ -261,36 +274,44 @@ async function generateImage(prompt, size = "1024x1024", n = 1, responseFormat =
       console.error("Error generating image:", error.message);
     }
   }  
-  
-  
+
+
 axios
   .get(apiUrl, {
     headers: {
       Authorization: `Token ${apiKey}`
     },
     params: {
-        pageCursor,
+      // updatedAfter: '2023-05-02T16:41:53.186Z'
     },
   })
   .then(async (response) => {
-    const lastUpdate = await getLastUpdate();
-    console.log(response)
-    console.log("••••••••••••••••••••••••••BIG DIVIDER••••••••••••••••••••••••••")
-    console.log(response.data.results[0])
+    // const lastUpdate = await getLastUpdate();
+    lastUpdate = new Date('5/8/2023 10:30 PM');
     const results = response.data.results;
     for (const result of results) { 
-        if (new Date(result.highlighted_at).getTime() > lastUpdate) {
-            const url = await generateImage("An impressionist painting of " + result.title);
-            const inputID = await createInput(result, url);
-            await processTags(result.book_tags, inputID);
-            await addConnection(inputID, result.author);
-            const highlights = result.highlights;
-            for (const highlight of highlights) {
+        let shouldCreateInput = false;
+        for (const highlight of result.highlights) {
+          if (new Date(highlight.created_at) > lastUpdate) {
+            shouldCreateInput = true;
+            break;
+          }
+        }
+        if (shouldCreateInput) {
+          const url = await generateImage("An impressionist painting of " + result.title);
+          const inputID = await createInput(result, url);
+          await processTags(result.book_tags, inputID);
+          await addConnection(inputID, result.author);
+          const highlights = result.highlights;
+          for (const highlight of highlights) {
+            if (shouldCreateInput) {
+              console.log(highlight);
               const url = await generateImage("An impressionist painting of " + result.title);
               const quote = await createQuote(highlight, inputID, url);
               const highlightTags = highlight.tags;
-              await processTags(highlightTags, quote.id);        
+              await processTags(highlightTags, quote.id);
             }
+          }
         }
     }
   })
